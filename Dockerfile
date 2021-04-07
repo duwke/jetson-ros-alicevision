@@ -17,39 +17,25 @@ RUN useradd -m $USERNAME && \
 # install package
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        sudo \
-        build-essential \
-        git \
-        less \
-        emacs \
-        tmux \
-        bash-completion \
-        command-not-found \
-        software-properties-common \
-        xdg-user-dirs \
-        xsel \
-        dirmngr \
-        gpg-agent \
-        mesa-utils \
-        libglu1-mesa-dev \
-        libgles2-mesa-dev \
-        freeglut3-dev 
-
-# # ROS Melodic
-# RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-# RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-# RUN apt-get update && apt-get install -y --no-install-recommends \
-#         ros-melodic-desktop-full \
-#         python-rosdep \
-#         python-rosinstall \
-#         python-rosinstall-generator \
-#         python-wstool \
-#         build-essential 
-
-# RUN rosdep init
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    # tools
+    sudo \
+    build-essential \
+    git \
+    less \
+    emacs \
+    tmux \
+    bash-completion \
+    command-not-found \
+    software-properties-common \
+    xdg-user-dirs \
+    xsel \
+    dirmngr \
+    gpg-agent \
+    mesa-utils \
+    libglu1-mesa-dev \
+    libgles2-mesa-dev \
+    freeglut3-dev \
+    # qt
     python3 xcb libxkbcommon-x11-0 wget tar python3-pip python3-setuptools \
     qttools5-dev               \
     qtdeclarative5-dev         \
@@ -83,9 +69,7 @@ RUN apt-get update && \
     libceres-dev \
     graphviz \
     doxygen \
-    python3-sphinx && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    python3-sphinx
 
 WORKDIR /home/$USERNAME/workspace/src
 # cmake 3.20
@@ -105,7 +89,6 @@ RUN git clone https://github.com/alicevision/AliceVision.git --recursive && \
     make -j8 && \
     make install
 
-
 # # necessary for sudo apt-get build-dep qt5-default
 RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list && \
     apt-get update && \
@@ -113,9 +96,8 @@ RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list && \
 
 ENV LLVM_INSTALL_DIR=/usr/lib/clang/6
 
+# qt
 WORKDIR /home/$USERNAME/workspace/src
-
-# I make twice because of a bug 
 RUN wget http://master.qt.io/archive/qt/5.15/5.15.2/submodules/qt-everywhere-src-5.15.2.tar.xz && \
     tar xpf qt-everywhere-src-5.15.2.tar.xz && \
     cd qt-everywhere-src-5.15.2  && \
@@ -130,10 +112,27 @@ RUN git clone http://code.qt.io/pyside/pyside-setup.git && \
     python3 setup.py install --qmake=/usr/local/Qt-5.15.2/bin/qmake  --parallel=8
 
 WORKDIR /home/$USERNAME/workspace/src
-RUN git clone https://github.com/alicevision/meshroom.git  && \
-    cd meshroom && \
-    pip3 install -r requirements.txt
-            
+RUN git clone https://github.com/aharbick/meshroom && \
+    sudo apt-get install python3 python3-venv && \
+    cd meshroom && python3 -m venv venv && \
+    . venv/bin/activate && \
+    pip install wheel && \
+    pip install -r requirements.txt
+
+
+# ROS Melodic
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-melodic-desktop-full \
+    python-rosdep \
+    python-rosinstall \
+    python-rosinstall-generator \
+    python-wstool \
+    build-essential && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+RUN rosdep init
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
