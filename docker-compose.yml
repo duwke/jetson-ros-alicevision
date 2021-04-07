@@ -1,0 +1,24 @@
+version: "2.3"
+
+services:
+
+  jetson-melodic-alicevision-service:
+    container_name: jetson-melodic-alicevision-container
+    image: jetson-melodic-alicevisionc:latest
+    stdin_open: true
+    tty: true
+    network_mode: "host"
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    privileged: true
+    devices:
+      - "/dev/snd/seq:/dev/snd/seq"
+    volumes:
+      - /dev/log:/dev/log
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      ROS_MASTER_URI: ${ROS_MASTER_URI}
+      ROS_IP: ${ROS_IP}
+      DISPLAY: ${DISPLAY}
+      QT_X11_NO_MITSHM: 1
