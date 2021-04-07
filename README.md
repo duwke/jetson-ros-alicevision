@@ -4,7 +4,7 @@ Dockerfile for ROS Melodic on jetson with AliceVision installed
 Spefically, we are using a jetson xavier agx
 https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-agx-xavier/
 
-* Notes
+# Notes
 1. I have ROS commented out for the moment, as it works.  We are currently troubleshooting AliceVision
 2. If using a nano, you should change "j8" to "j2" in the dockerfile
 
