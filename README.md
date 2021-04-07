@@ -8,7 +8,7 @@ https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-agx-xav
 1. If using a nano, you should change "j8" to "j2" in the dockerfile
 
 
-# Prequesites
+# Prerequisites
 * JetPack 4.5.1
 * docker (it should be installed with JetPack 4.5.1)
 * docker-compose 
