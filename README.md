@@ -12,4 +12,4 @@ https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-agx-xav
 
 # Build
 docker build -t jetson-melodic-alicevision .
-docker-compose run jetson-melodic-alicevision /bin/bash
+docker-compose run jetson-melodic-alicevision-service /bin/bash
