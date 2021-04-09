@@ -1,18 +1,5 @@
-FROM nvcr.io/nvidia/l4t-base:r32.3.1
+FROM nvcr.io/nvidia/l4t-base:r32.5.0
 
-# add new sudo user
-ENV USERNAME melodic
-ENV HOME /home/$USERNAME
-RUN useradd -m $USERNAME && \
-    echo "$USERNAME:$USERNAME" | chpasswd && \
-    usermod --shell /bin/bash $USERNAME && \
-    usermod -aG sudo $USERNAME && \
-    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
-    chmod 0440 /etc/sudoers.d/$USERNAME && \
-    # Replace 1000 with your user/group id
-    usermod  --uid 1000 $USERNAME && \
-    groupmod --gid 1000 $USERNAME && \
-    gpasswd -a $USERNAME video
 
 # install package
 ENV DEBIAN_FRONTEND noninteractive
@@ -69,7 +56,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libceres-dev \
     graphviz \
     doxygen \
-    python3-sphinx
+    python3-sphinx \
+    unzip \
+    yasm \
+    pkg-config \
+    libtool \
+    libssl-dev \
+    nasm \
+    automake \
+    cmake \
+    gfortran
 
 WORKDIR /home/$USERNAME/workspace/src
 # cmake 3.20
