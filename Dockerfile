@@ -67,6 +67,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     gfortran
 
+
+# add new sudo user
+ENV USERNAME melodic
+ENV HOME /home/$USERNAME
+RUN useradd -m $USERNAME && \
+    echo "$USERNAME:$USERNAME" | chpasswd && \
+    usermod --shell /bin/bash $USERNAME && \
+    usermod -aG sudo $USERNAME && \
+    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
+    chmod 0440 /etc/sudoers.d/$USERNAME && \
+    # Replace 1000 with your user/group id
+    usermod  --uid 1000 $USERNAME && \
+    groupmod --gid 1000 $USERNAME && \
+    gpasswd -a $USERNAME video
+
 WORKDIR /home/$USERNAME/workspace/src
 # cmake 3.20
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz && \
@@ -76,12 +91,19 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0
     make -j8  && \
     sudo make install 
 
+ENV AV_DEV=/opt/AliceVision_git \
+    AV_BUILD=/home/$USERNAME/workspace/src/AliceVision/build \
+    AV_INSTALL=/opt/AliceVision_install 
+
+RUN mkdir -p "${AV_INSTALL}/lib" && \
+     ln -s lib "${AV_INSTALL}/lib64"
+
 # alicevision
-RUN git clone https://github.com/alicevision/AliceVision.git --recursive && \
+RUN git clone https://github.com/aharbick/AliceVision.git --recursive && \
     cd AliceVision && \
     mkdir build && \
     cd build && \
-    cmake .. -DALICEVISION_BUILD_DEPENDENCIES=ON && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release  -DALICEVISION_BUILD_DEPENDENCIES=ON -DCMAKE_INSTALL_PREFIX=${AV_INSTALL} .. && \
     make -j8 && \
     make install
 
@@ -129,10 +151,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 RUN rosdep init
+ENV CUDA_CUDART_LIBRARY="/usr/local/cuda/lib64/libcudart.so"
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
-RUN rosdep update
+# RUN rosdep update
 SHELL ["/bin/bash", "-c"]
 RUN echo "export PATH=/usr/local/cuda/bin:$PATH" >> ~/.bashrc && \
     echo "export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH" >> ~/.bashrc && \
