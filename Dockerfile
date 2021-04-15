@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/l4t-base:r32.5.0
+FROM nvcr.io/nvidia/l4t-ml:r32.5.0-py3
 
 
 # install package
@@ -65,24 +65,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nasm \
     automake \
     cmake \
-    gfortran
+    gfortran 
 
 
-# add new sudo user
-ENV USERNAME melodic
-ENV HOME /home/$USERNAME
-RUN useradd -m $USERNAME && \
-    echo "$USERNAME:$USERNAME" | chpasswd && \
-    usermod --shell /bin/bash $USERNAME && \
-    usermod -aG sudo $USERNAME && \
-    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME && \
-    chmod 0440 /etc/sudoers.d/$USERNAME && \
-    # Replace 1000 with your user/group id
-    usermod  --uid 1000 $USERNAME && \
-    groupmod --gid 1000 $USERNAME && \
-    gpasswd -a $USERNAME video
-
-WORKDIR /home/$USERNAME/workspace/src
+WORKDIR /home/root/workspace/src
 # cmake 3.20
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz && \
     tar -zxvf cmake-3.20.0.tar.gz && \
@@ -93,7 +79,8 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0
 
 ENV AV_DEV=/opt/AliceVision_git \
     AV_BUILD=/home/$USERNAME/workspace/src/AliceVision/build \
-    AV_INSTALL=/opt/AliceVision_install 
+    AV_INSTALL=/opt/AliceVision_install  \
+    VERBOSE=1
 
 RUN mkdir -p "${AV_INSTALL}/lib" && \
      ln -s lib "${AV_INSTALL}/lib64"
@@ -103,9 +90,11 @@ RUN git clone https://github.com/aharbick/AliceVision.git --recursive && \
     cd AliceVision && \
     mkdir build && \
     cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=Release  -DALICEVISION_BUILD_DEPENDENCIES=ON -DCMAKE_INSTALL_PREFIX=${AV_INSTALL} .. && \
-    make -j8 && \
-    make install
+    cmake .. -DCMAKE_BUILD_TYPE=Release  \
+    -DALICEVISION_BUILD_DEPENDENCIES=ON -DAV_BUILD_TIFF=OFF \
+    -DCMAKE_PREFIX_PATH:PATH="${AV_INSTALL}" \
+    -DCMAKE_INSTALL_PREFIX:PATH="${AV_INSTALL}" && \
+    make -j8 
 
 # # necessary for sudo apt-get build-dep qt5-default
 RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list && \
